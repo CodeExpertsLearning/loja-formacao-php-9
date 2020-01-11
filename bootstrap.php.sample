@@ -1,0 +1,17 @@
+<?php 
+
+date_default_timezone_set('America/Sao_Paulo');
+
+require __DIR__ . '/vendor/autoload.php';
+
+//Project Configs
+define('BASE_PATH', __DIR__);
+define('HOME', 'http://localhost:3030/');
+define('TEMPLATES', BASE_PATH . '/templates/');
+
+//Database Configs
+define('DB_NAME', '');
+define('DB_HOST', '');
+define('DB_USER', '');
+define('DB_PASSWORD', '');
+define('DB_CHARSET', '');
