@@ -5,11 +5,16 @@ class Query
 {
     private $connection;
 
-    protected $table = 'products';
+    protected $table = null;
 
     public function __construct(\PDO $pdo)
     {
         $this->connection = $pdo;
+    }
+
+    public function setTable($table)
+    {
+        $this->table = $table;
     }
 
     public function findAll($fields = '*')
@@ -21,9 +26,33 @@ class Query
         return $select->fetchAll(\PDO::FETCH_OBJ);
     }
 
-    public function find($id)
+    public function where(array $conditions = [], $fields = '*')
     {
-        //SELECT * FROM table WHERE id = $id;...
+        $sql = 'SELECT ' . $fields . ' FROM ' . $this->table . ' WHERE ';
+
+        $where = '';
+
+        foreach($conditions as $key => $cond) {
+            if($where) {
+                $where .= ' AND ' . $key . ' = ' . ':' . $key;
+            } else {
+                $where .= $key . ' = ' . ':' . $key;
+            }
+            
+        }
+
+        $sql =  $sql . $where;
+        
+        $result = $this->execute($sql, $conditions);
+
+        return $result->fetchAll(\PDO::FETCH_OBJ);
+    }
+
+    public function find(int $id)
+    {
+        $result = $this->where(['id' => $id]);
+
+        return current($result);
     }
 
     public function insert(array $data = [])
@@ -35,14 +64,48 @@ class Query
         $sql = 'INSERT INTO ' . $this->table . '(' . $fields . ', created_at, updated_at) 
                 VALUES(' . $binds . ', NOW(), NOW())';
                 
-        $stmt = $this->connection->prepare($sql);
+        return $this->execute($sql, $data);
+    }
 
-        foreach($data as $key => $value) {
-            $paramType = is_int($key) ? \PDO::PARAM_INT : \PDO::PARAM_STR;
+    public function update($data)
+    {
+        if(!array_key_exists('id', $data)) {
+			throw new \Exception('É preciso informar um ID válido para update!');
+		}
 
-            $stmt->bindValue(':' . $key, $value, $paramType);
+		$sql = 'UPDATE ' . $this->table . ' SET ';
+
+		$set = null;
+		$binds = array_keys($data);
+
+        foreach($binds as $v) {
+			if($v !== 'id') {
+				$set .= is_null($set) ? $v . ' = :' . $v : ', ' .  $v . ' = :' . $v ;
+			}
+		}
+        $sql .= $set . ', updated_at = NOW() WHERE id = :id';
+        
+        return $this->execute($sql, $data);
+    }
+
+    public function delete(int $id)
+	{
+		$sql = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
+
+        return $this->execute($sql, ['id' => $id]);
+	}
+
+    private function execute($querySql, array $data = [])
+    {
+        $pdoExecute = $this->connection->prepare($querySql);
+        
+        foreach($data  as $key => $value) {
+            $pdoExecute->bindValue(':' . $key, $value, 
+            gettype($value) != 'integer' ? \PDO::PARAM_STR : \PDO::PARAM_INT );
         }
 
-        print $stmt->execute();
+        $pdoExecute->execute();
+
+        return $pdoExecute;
     }
 }

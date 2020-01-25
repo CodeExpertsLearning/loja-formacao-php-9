@@ -1,18 +1,22 @@
 <?php
 namespace Code\Controller;
 
-use Code\Database\{Query, Connection};
+use Code\View;
+use Code\Model\Product;
 
 class HomeController
 {
+    private $product;
+
+    public function __construct()
+    {
+        $this->product = new Product();
+    }
+
     public function index()
     {
-        $query = new Query(Connection::getInstance());
-    
-        // foreach($query->findAll() as $product) {
-        //     print $product->name . '<br>';
-        // }
+        $products = $this->product->findAll();
 
-        require TEMPLATES . 'index.phtml';
+        return View::render('index', compact('products'));
     }
 }
