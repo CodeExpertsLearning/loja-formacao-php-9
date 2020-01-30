@@ -25,6 +25,15 @@ class Model
         return $this->query->findAll();
     }
 
+    public function where(array $conditions = [])
+    {
+        $result = $this->query->where($conditions);
+
+        if(count($result) == 1) return current($result);
+
+        return $result;
+    }   
+
     public function __set($name, $value)
     {
         $this->data[$name] = $value;   

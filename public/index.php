@@ -6,7 +6,7 @@ $url = explode('/', $url);
 
 $controller = isset($url[0]) && $url[0] ? $url[0] : 'home';
 $method = isset($url[1]) && $url[1] ? $url[1] : 'index';
-$params = isset($url[2]) && $url[2] ? $url[2] : [];
+$params = isset($url[2]) && $url[2] ? [$url[2]] : [];
 
 $controller = '\\Code\\Controller\\' . ucfirst($controller) . 'Controller';
 
